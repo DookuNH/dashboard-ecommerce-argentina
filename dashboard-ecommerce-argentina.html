@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Marketing - Ecommerce Argentina</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #f0f0f0;
+            color: #333;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .dashboard-section {
+            display: none;
+        }
+
+        .dashboard-section.active {
+            display: block;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .kpi-card.alert {
+            border-left-color: #ff6b6b;
+        }
+
+        .kpi-card.warning {
+            border-left-color: #ffd93d;
+        }
+
+        .kpi-card.success {
+            border-left-color: #6bcf7f;
+        }
+
+        .kpi-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .kpi-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .kpi-meta {
+            color: #999;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+
+        .kpi-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-alert {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .status-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .chart-container h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .metrics-table thead {
+            background: #667eea;
+            color: white;
+        }
+
+        .metrics-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .metrics-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .metrics-table tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .metrics-table .metric-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .metrics-table .metric-category {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .category-kpi {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .category-marketing {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .category-market {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .category-conversion {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .category-product {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+        }
+
+        .insights-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .insights-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .insight-item {
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .insight-item.critical {
+            border-left-color: #ff6b6b;
+        }
+
+        .insight-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .insight-text {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .market-info {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .market-info h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .market-info ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .market-info li {
+            padding: 8px 0;
+            color: #666;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .market-info li:last-child {
+            border-bottom: none;
+        }
+
+        .value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .recommendation-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .recommendation-box h4 {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .recommendation-box ul {
+            list-style-position: inside;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+
+            .metrics-table {
+                font-size: 0.9em;
+            }
+
+            .metrics-table th,
+            .metrics-table td {
+                padding: 10px;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            font-size: 0.95em;
+        }
+
+        .alert-banner {
+            background: #ffebee;
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Dashboard Marketing - Ecommerce Argentina</h1>
+            <p>Panel centralizado de KPIs y métricas para monitorear la performance del ecommerce</p>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('overview')">📈 Overview</button>
+                <button class="tab-btn" onclick="showTab('kpis')">🎯 KPIs Detallados</button>
+                <button class="tab-btn" onclick="showTab('channels')">📱 Canales Marketing</button>
+                <button class="tab-btn" onclick="showTab('market')">🇦🇷 Mercado Argentina</button>
+                <button class="tab-btn" onclick="showTab('strategy')">💡 Estrategia</button>
+            </div>
+        </header>
+
+        <!-- OVERVIEW TAB -->
+        <div id="overview" class="dashboard-section active">
+            <div class="alert-banner">
+                🚨 <strong>5 métricas en ALERTA</strong> requieren atención inmediata
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Conversion Rate</div>
+                    <div class="kpi-value">2.8%</div>
+                    <div class="kpi-meta">Meta: 3.5% (-20%)</div>
+                    <span class="kpi-status status-warning">En Seguimiento</span>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-label">AOV (Ticket Promedio)</div>
+                    <div class="kpi-value">$3.100</div>
+                    <div class="kpi-meta">Meta: $3.500 (-11%)</div>
+                    <span class="kpi-status status-warning">En Seguimiento</span>
+                </div>
+
+                <div class="kpi-card alert">
+                    <div class="kpi-label">Tráfico Pagado (SEM)</div>
+                    <div class="kpi-value">28k</div>
+                    <div class="kpi-meta">Meta: 35k (-20%) | ROI: 3.2x</div>
+                    <span class="kpi-status status-alert">🔴 Alerta</span>
+                </div>
+
+                <div class="kpi-card alert">
+                    <div class="kpi-label">Carrito Abandonado</div>
+                    <div class="kpi-value">32%</div>
+                    <div class="kpi-meta">Meta: 45% (-29%)</div>
+                    <span class="kpi-status status-alert">🔴 Alerta</span>
+                </div>
+
+                <div class="kpi-card alert">
+                    <div class="kpi-label">Devoluciones</div>
+                    <div class="kpi-value">8.5%</div>
+                    <div class="kpi-meta">Meta: 5% (+70%)</div>
+                    <span class="kpi-status status-alert">🔴 Alerta</span>
+                </div>
+
+                <div class="kpi-card alert">
+                    <div class="kpi-label">Tiempo Entrega</div>
+                    <div class="kpi-value">5.2 días</div>
+                    <div class="kpi-meta">Meta: 3 días (-73%)</div>
+                    <span class="kpi-status status-alert">🔴 Alerta</span>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>📊 Performance General vs Metas</h3>
+                <canvas id="performanceChart" height="80"></canvas>
+            </div>
+
+            <div class="insights-section">
+                <h3>💡 Insights Principales</h3>
+
+                <div class="insight-item critical">
+                    <div class="insight-title">🔴 Recuperación de Carritos: 32% vs 45% Meta</div>
+                    <div class="insight-text">13 puntos porcentuales por debajo. Implementar: Email flow mejorado, SMS recovery, urgencia visual. Impacto directo en revenue.</div>
+                </div>
+
+                <div class="insight-item critical">
+                    <div class="insight-title">🔴 Devoluciones: 8.5% vs 5% Meta</div>
+                    <div class="insight-text">Tasa muy alta. Causas probables: descripciones inexactas, fotos insuficientes, tamaños incorrectos. Realizar audit de producto.</div>
+                </div>
+
+                <div class="insight-item critical">
+                    <div class="insight-title">🔴 Logística: 5.2 días vs 3 días Meta</div>
+                    <div class="insight-text">Principales desafíos en Argentina: distancias, infraestructura. Evaluar fulfillment centers regionales o partnerships.</div>
+                </div>
+
+                <div class="insight-item">
+                    <div class="insight-title">⚠️ Tráfico Pagado: 28k vs 35k Meta</div>
+                    <div class="insight-text">20% por debajo. Posible: presupuesto suboptimizado, keywords con bajo ROAS. Audit recomendado.</div>
+                </div>
+
+                <div class="insight-item">
+                    <div class="insight-title">⚠️ NPS Bajo: 42 vs 50 Meta</div>
+                    <div class="insight-text">Afecta retención. Necesario: programa de loyalidad, mejora de servicio post-compra.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIS TAB -->
+        <div id="kpis" class="dashboard-section">
+            <table class="metrics-table">
+                <thead>
+                    <tr>
+                        <th>Métrica</th>
+                        <th>Categoría</th>
+                        <th>Valor Actual</th>
+                        <th>Meta</th>
+                        <th>Diferencia</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="metric-name">Conversion Rate</td>
+                        <td><span class="metric-category category-kpi">KPIs</span></td>
+                        <td>2.8%</td>
+                        <td>3.5%</td>
+                        <td>-0.7% (-20%)</td>
+                        <td><span class="kpi-status status-warning">Seguimiento</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Ticket Promedio (ATV)</td>
+                        <td><span class="metric-category category-kpi">KPIs</span></td>
+                        <td>$2.850</td>
+                        <td>$3.200</td>
+                        <td>-$350 (-11%)</td>
+                        <td><span class="kpi-status status-warning">Seguimiento</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">AOV (Average Order Value)</td>
+                        <td><span class="metric-category category-kpi">KPIs</span></td>
+                        <td>$3.100</td>
+                        <td>$3.500</td>
+                        <td>-$400 (-11%)</td>
+                        <td><span class="kpi-status status-warning">Seguimiento</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Tráfico Orgánico (SEO)</td>
+                        <td><span class="metric-category category-marketing">Marketing</span></td>
+                        <td>45k</td>
+                        <td>55k</td>
+                        <td>-10k (-18%)</td>
+                        <td><span class="kpi-status status-warning">Seguimiento</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Tráfico Pagado (SEM/Google Ads)</td>
+                        <td><span class="metric-category category-marketing">Marketing</span></td>
+                        <td>28k</td>
+                        <td>35k</td>
+                        <td>-7k (-20%)</td>
+                        <td><span class="kpi-status status-alert">🔴 Alerta</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Email Marketing - CTR</td>
+                        <td><span class="metric-category category-marketing">Marketing</span></td>
+                        <td>4.2%</td>
+                        <td>5.5%</td>
+                        <td>-1.3% (-24%)</td>
+                        <td><span class="kpi-status status-warning">Seguimiento</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Social Media - Engagement Rate</td>
+                        <td><span class="metric-category category-marketing">Marketing</span></td>
+                        <td>6.8%</td>
+                        <td>8%</td>
+                        <td>-1.2% (-15%)</td>
+                        <td><span class="kpi-status status-warning">Seguimiento</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Carrito Abandonado - Recuperación</td>
+                        <td><span class="metric-category category-conversion">Conversión</span></td>
+                        <td>32%</td>
+                        <td>45%</td>
+                        <td>-13pp (-29%)</td>
+                        <td><span class="kpi-status status-alert">🔴 Alerta</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Tasa de Retorno de Clientes</td>
+                        <td><span class="metric-category category-conversion">Conversión</span></td>
+                        <td>28%</td>
+                        <td>35%</td>
+                        <td>-7pp (-20%)</td>
+                        <td><span class="kpi-status status-warning">Seguimiento</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Churn Rate</td>
+                        <td><span class="metric-category category-conversion">Conversión</span></td>
+                        <td>15%</td>
+                        <td>10%</td>
+                        <td>+5pp (+50%)</td>
+                        <td><span class="kpi-status status-alert">🔴 Alerta</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Market Size Argentina (Digital)</td>
+                        <td><span class="metric-category category-market">Mercado</span></td>
+                        <td>USD 54B</td>
+                        <td>USD 60B</td>
+                        <td>-USD 6B (-10%)</td>
+                        <td><span class="kpi-status status-success">✓ Cumplido</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Devoluciones (Returns Rate)</td>
+                        <td><span class="metric-category category-product">Producto</span></td>
+                        <td>8.5%</td>
+                        <td>5%</td>
+                        <td>+3.5pp (+70%)</td>
+                        <td><span class="kpi-status status-alert">🔴 Alerta</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Satisfacción del Cliente (NPS)</td>
+                        <td><span class="metric-category category-product">Producto</span></td>
+                        <td>42</td>
+                        <td>50</td>
+                        <td>-8 (-16%)</td>
+                        <td><span class="kpi-status status-warning">Seguimiento</span></td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Tiempo de Entrega Promedio</td>
+                        <td><span class="metric-category category-product">Producto</span></td>
+                        <td>5.2 días</td>
+                        <td>3 días</td>
+                        <td>+2.2 días (-73%)</td>
+                        <td><span class="kpi-status status-alert">🔴 Alerta</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CHANNELS TAB -->
+        <div id="channels" class="dashboard-section">
+            <div class="chart-container">
+                <h3>📊 Performance de Canales de Marketing</h3>
+                <canvas id="channelsChart" height="80"></canvas>
+            </div>
+
+            <div class="two-column">
+                <div class="market-info">
+                    <h4>🔍 Tráfico Orgánico (SEO)</h4>
+                    <ul>
+                        <li>Sesiones Actuales: <span class="value">45k</span></li>
+                        <li>Meta: <span class="value">55k</span></li>
+                        <li>Performance: <span class="value">82%</span></li>
+                        <li>Tendencia: <span class="value">↓ -18%</span></li>
+                    </ul>
+                    <div class="recommendation-box">
+                        <h4>Recomendaciones:</h4>
+                        <ul>
+                            <li>Crear contenido localizado por ciudades</li>
+                            <li>Optimizar Local SEO (Google Business)</li>
+                            <li>Construir backlinks con autoridades locales</li>
+                            <li>Target: +10k sesiones en 90 días</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="market-info">
+                    <h4>💰 Tráfico Pagado (SEM) - 🔴 ALERTA</h4>
+                    <ul>
+                        <li>Sesiones Actuales: <span class="value">28k</span></li>
+                        <li>Meta: <span class="value">35k</span></li>
+                        <li>ROI: <span class="value">3.2x</span></li>
+                        <li>Performance: <span class="value">80%</span></li>
+                    </ul>
+                    <div class="recommendation-box">
+                        <h4>Acciones Inmediatas:</h4>
+                        <ul>
+                            <li>Audit de ROI por keyword</li>
+                            <li>Pausar keywords con ROAS < 2x</li>
+                            <li>Aumentar bid en branded</li>
+                            <li>Expandir a Shopping Ads</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="market-info">
+                    <h4>📧 Email Marketing</h4>
+                    <ul>
+                        <li>CTR Actual: <span class="value">4.2%</span></li>
+                        <li>Meta: <span class="value">5.5%</span></li>
+                        <li>Performance: <span class="value">76%</span></li>
+                        <li>Segmentos: <span class="value">4 activos</span></li>
+                    </ul>
+                    <div class="recommendation-box">
+                        <h4>Optimizaciones:</h4>
+                        <ul>
+                            <li>Segmentación avanzada (RFM)</li>
+                            <li>A/B testing de subject lines</li>
+                            <li>Dynamic content personalizado</li>
+                            <li>Optimizar horario envío</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="market-info">
+                    <h4>📱 Social Media</h4>
+                    <ul>
+                        <li>Engagement Rate: <span class="value">6.8%</span></li>
+                        <li>Meta: <span class="value">8%</span></li>
+                        <li>Performance: <span class="value">85%</span></li>
+                        <li>Plataforma Top: <span class="value">Instagram</span></li>
+                    </ul>
+                    <div class="recommendation-box">
+                        <h4>Estrategia:</h4>
+                        <ul>
+                            <li>Reels 2-3x por semana (Instagram)</li>
+                            <li>TikTok trends + producto</li>
+                            <li>Shopable posts (Shop feature)</li>
+                            <li>Micro-influencers locales</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MARKET TAB -->
+        <div id="market" class="dashboard-section">
+            <div class="two-column">
+                <div class="market-info">
+                    <h4>📊 Tamaño y Crecimiento del Mercado</h4>
+                    <ul>
+                        <li>Market Size 2026: <span class="value">USD 54B</span></li>
+                        <li>Crecimiento YoY: <span class="value">+18%</span></li>
+                        <li>Proyección 2027: <span class="value">USD 64B</span></li>
+                        <li>Penetración Digital: <span class="value">68%</span></li>
+                    </ul>
+                </div>
+
+                <div class="market-info">
+                    <h4>👥 Comportamiento Consumidor Argentino</h4>
+                    <ul>
+                        <li>Edad Promedio: <span class="value">25-44 años</span></li>
+                        <li>Dispositivo Principal: <span class="value">Móvil (68%)</span></li>
+                        <li>Compras/año: <span class="value">8-10</span></li>
+                        <li>Ticket Promedio: <span class="value">USD 65-85</span></li>
+                    </ul>
+                </div>
+
+                <div class="market-info">
+                    <h4>💳 Métodos de Pago (CRÍTICO)</h4>
+                    <ul>
+                        <li>Tarjeta Crédito: <span class="value">52%</span></li>
+                        <li>Billetera Virtual: <span class="value">28%</span></li>
+                        <li>Transferencia: <span class="value">12%</span></li>
+                        <li>Efectivo (C.O.D.): <span class="value">5%</span></li>
+                    </ul>
+                    <div class="recommendation-box">
+                        <h4>Importante:</h4>
+                        <ul>
+                            <li>Ofrecer 3, 6, 12 cuotas sin interés</li>
+                            <li>Mercado Pago es líder (45% digital)</li>
+                            <li>Billetera virtual crece +35% YoY</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="market-info">
+                    <h4>📦 Logística - Desafío Principal</h4>
+                    <ul>
+                        <li>Buenos Aires: <span class="value">2-3 días</span></li>
+                        <li>Interior: <span class="value">5-10 días</span></li>
+                        <li>Operador Líder: <span class="value">Andreani</span></li>
+                        <li>Costo Envío: <span class="value">ARS 500-2.500</span></li>
+                    </ul>
+                </div>
+
+                <div class="market-info">
+                    <h4>🏪 Competencia Principal</h4>
+                    <ul>
+                        <li>Mercado Libre: <span class="value">Líder (90%)</span></li>
+                        <li>Amazon: <span class="value">Crecimiento +20%</span></li>
+                        <li>Tiendanube/Shopify: <span class="value">Retailers indie</span></li>
+                        <li>Tu Diferenciador: <span class="value">Localización</span></li>
+                    </ul>
+                </div>
+
+                <div class="market-info">
+                    <h4>⚠️ Factores Macroeconómicos</h4>
+                    <ul>
+                        <li>Inflación Anual: <span class="value">~180%</span></li>
+                        <li>Desempleo: <span class="value">~25%</span></li>
+                        <li>USD/ARS Oficial: <span class="value">~1,100</span></li>
+                        <li>Impacto: <span class="value">AOV reduce</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="market-info" style="margin-top: 30px;">
+                <h4>🚀 Tendencias Futuro (2026-2027)</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                    <div>
+                        <strong style="color: #6bcf7f;">✅ Qué Crece:</strong>
+                        <ul style="margin-top: 10px;">
+                            <li>☑️ Social Commerce (TikTok Shop)</li>
+                            <li>☑️ Suscripciones</li>
+                            <li>☑️ Video Commerce</li>
+                            <li>☑️ Personalización IA</li>
+                            <li>☑️ Sustentabilidad</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong style="color: #ff6b6b;">❌ Qué Declina:</strong>
+                        <ul style="margin-top: 10px;">
+                            <li>☒ Email sin personalización</li>
+                            <li>☒ Anuncios genéricos</li>
+                            <li>☒ UX móvil pobre</li>
+                            <li>☒ Entregas lentas</li>
+                            <li>☒ Falta de social proof</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STRATEGY TAB -->
+        <div id="strategy" class="dashboard-section">
+            <div class="insights-section">
+                <h3>🎯 Estrategia Q2 2026</h3>
+
+                <div class="insight-item">
+                    <div class="insight-title">1️⃣ Incrementar Conversion Rate (2.8% → 3.5%)</div>
+                    <div class="insight-text">
+                        <strong>Acciones:</strong> A/B testing landing pages, mejorar UX checkout, agregar testimonios/reviews
+                        <br><strong>Impacto:</strong> +500-1000 conversiones/mes
+                        <br><strong>Timeline:</strong> 60 días
+                    </div>
+                </div>
+
+                <div class="insight-item critical">
+                    <div class="insight-title">2️⃣ Recuperar Carritos Abandonados (32% → 45%)</div>
+                    <div class="insight-text">
+                        <strong>Acciones:</strong> Email sequence (3 emails), SMS con oferta, urgencia visual
+                        <br><strong>Impacto:</strong> +$150-200k revenue/mes
+                        <br><strong>Timeline:</strong> 30 días (PRIORITARIO)
+                    </div>
+                </div>
+
+                <div class="insight-item critical">
+                    <div class="insight-title">3️⃣ Reducir Devoluciones (8.5% → 5%)</div>
+                    <div class="insight-text">
+                        <strong>Acciones:</strong> Audit descripciones/fotos, guías talla, videos demostrativo
+                        <br><strong>Impacto:</strong> -ARS 500-700 en costos/mes
+                        <br><strong>Timeline:</strong> 45 días
+                    </div>
+                </div>
+
+                <div class="insight-item critical">
+                    <div class="insight-title">4️⃣ Optimizar Logística (5.2 → 3 días)</div>
+                    <div class="insight-text">
+                        <strong>Acciones:</strong> Eval fulfillment centers regionales, alianzas logísticas, mismo-día CABA
+                        <br><strong>Impacto:</strong> +Satisfacción, -devoluciones
+                        <br><strong>Timeline:</strong> 90 días
+                    </div>
+                </div>
+
+                <div class="insight-item">
+                    <div class="insight-title">5️⃣ Aumentar Tráfico Pagado (28k → 35k)</div>
+                    <div class="insight-text">
+                        <strong>Acciones:</strong> Audit ROI keyword, performance max, retargeting
+                        <br><strong>Impacto:</strong> +1500-2000 sesiones/mes
+                        <br><strong>Timeline:</strong> 45 días
+                    </div>
+                </div>
+
+                <div class="insight-item">
+                    <div class="insight-title">6️⃣ Mejorar NPS (42 → 50)</div>
+                    <div class="insight-text">
+                        <strong>Acciones:</strong> Programa loyalidad, email nurturing, soporte 24/7
+                        <br><strong>Impacto:</strong> +retención, LTV +20%
+                        <br><strong>Timeline:</strong> 90 días
+                    </div>
+                </div>
+            </div>
+
+            <div class="market-info">
+                <h4>📅 Presupuesto Recomendado Q2 2026</h4>
+                <table class="metrics-table" style="margin-top: 20px;">
+                    <tr>
+                        <td><strong>SEO</strong></td>
+                        <td>15%</td>
+                        <td>Target: +10k sesiones</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SEM (Google Ads)</strong></td>
+                        <td>35%</td>
+                        <td>Target: +7k sesiones, ROAS 3.5x</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email Marketing</strong></td>
+                        <td>12%</td>
+                        <td>Target: CTR 5.5%, +45% cart recovery</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Social Media</strong></td>
+                        <td>25%</td>
+                        <td>Target: Engagement 8%, +300 conversiones</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Partnerships/Afiliados</strong></td>
+                        <td>10%</td>
+                        <td>Target: Nuevos partners de autoridad</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Micro-influencers</strong></td>
+                        <td>3%</td>
+                        <td>Target: Creadores locales, +reach</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="market-info">
+                <h4>✅ Plan de Acción - Próximos 30 Días</h4>
+                <ul style="list-style-position: inside;">
+                    <li>Audit completo SEM (ROI por keyword)</li>
+                    <li>Implementar abandonment cart email flow</li>
+                    <li>Crear contenido SEO para top 20 ciudades</li>
+                    <li>Diseñar 4 Reels/semana Instagram</li>
+                    <li>Segmentación avanzada base de datos email</li>
+                    <li>Definir KPI social conversion tracking</li>
+                    <li>Reuniones partners/influencers locales</li>
+                    <li>Audit descripciones producto (devoluciones)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            📊 Dashboard Marketing - Ecommerce Argentina | Actualizado: 7 de Abril, 2026
+            <br>
+            <a href="https://github.com" style="color: white; text-decoration: underline;">GitHub Repository</a>
+        </div>
+    </div>
+
+    <script>
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all sections
+            document.querySelectorAll('.dashboard-section').forEach(el => el.classList.remove('active'));
+            // Show selected section
+            document.getElementById(tabName).classList.add('active');
+            // Update button states
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Performance Chart
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(performanceCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Conversion Rate', 'AOV', 'Tráfico Pagado', 'Cart Recovery', 'NPS', 'Entrega', 'Email CTR'],
+                datasets: [{
+                    label: 'Performance Actual',
+                    data: [80, 89, 80, 71, 84, 58, 76],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#667eea',
+                }, {
+                    label: 'Meta',
+                    data: [100, 100, 100, 100, 100, 100, 100],
+                    borderColor: '#ccc',
+                    backgroundColor: 'rgba(200, 200, 200, 0.05)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+
+        // Channels Chart
+        const channelsCtx = document.getElementById('channelsChart').getContext('2d');
+        new Chart(channelsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['SEO', 'SEM', 'Email', 'Social', 'Organic'],
+                datasets: [{
+                    label: 'Sesiones Actuales (miles)',
+                    data: [45, 28, 12, 18, 15],
+                    backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b'],
+                }]
+            },
+            options: {
+                indexAxis: 'x',
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
