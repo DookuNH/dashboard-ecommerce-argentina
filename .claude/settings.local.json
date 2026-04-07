@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__0776dc9f-21f8-4036-b799-4e44affea372__notion-create-pages",
+      "Bash(gh auth:*)",
+      "Bash(winget install:*)"
+    ]
+  }
+}
